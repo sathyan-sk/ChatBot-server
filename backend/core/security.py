@@ -1,36 +1,59 @@
-"""Password hashing and credential-verification primitives.
+"""Security primitives using bcrypt directly.
 
-Used by admin authentication (env-configured, no DB lifecycle) and, in later
-phases, by application API-key validation. This module has zero DB dependency.
+Why not passlib?
+- passlib 1.7.4 has compatibility issues with newer bcrypt releases.
+- bcrypt itself supports the exact hash/verify operations we need.
 """
 
+from __future__ import annotations
+
+import base64
 import hashlib
 import hmac
 import secrets
 
-from passlib.context import CryptContext
+import bcrypt
 
-_pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+from exceptions.domain_exceptions import ValidationFailedError
+
+_BCRYPT_MAX_BYTES = 72
+
+
+def _validate_bcrypt_input(password: str) -> bytes:
+    password_bytes = password.encode("utf-8")
+    if len(password_bytes) > _BCRYPT_MAX_BYTES:
+        raise ValidationFailedError("Password exceeds bcrypt maximum length of 72 bytes.")
+    return password_bytes
 
 
 def hash_password(plain_password: str) -> str:
-    return _pwd_context.hash(plain_password)
+    password_bytes = _validate_bcrypt_input(plain_password)
+    hashed = bcrypt.hashpw(password_bytes, bcrypt.gensalt())
+    return hashed.decode("utf-8")
 
 
 def verify_password(plain_password: str, password_hash: str) -> bool:
-    return _pwd_context.verify(plain_password, password_hash)
+    password_bytes = _validate_bcrypt_input(plain_password)
+    return bcrypt.checkpw(password_bytes, password_hash.encode("utf-8"))
 
 
 def generate_api_key() -> str:
-    """Generates a cryptographically strong, opaque credential value."""
     return secrets.token_urlsafe(32)
 
 
 def hash_api_key(raw_key: str, salt: str) -> str:
-    """Deterministic hash so a raw key can be re-hashed and compared on lookup,
-    without ever storing the raw key itself."""
     return hmac.new(salt.encode("utf-8"), raw_key.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
 def constant_time_compare(a: str, b: str) -> bool:
     return hmac.compare_digest(a, b)
+
+
+def prehash_for_bcrypt(value: str) -> str:
+    """Optional helper if you ever need long secret support with bcrypt.
+
+    bcrypt only supports 72 bytes. A standard workaround is SHA-256 + base64
+    before bcrypt, as recommended by bcrypt project docs.
+    """
+    digest = hashlib.sha256(value.encode("utf-8")).digest()
+    return base64.b64encode(digest).decode("ascii")

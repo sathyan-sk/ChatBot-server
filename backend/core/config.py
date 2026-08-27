@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     llm_provider: str = Field(default="openrouter")
     llm_model: str = Field(default="")
     openrouter_api_key: str = Field(default="")
+    ollama_base_url: str = Field(default="http://localhost:11434")
 
     embedding_provider: str = Field(default="nomic")
     embedding_model: str = Field(default="")

@@ -7,6 +7,7 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI, Request
 from pydantic import ValidationError
 
+from app.api.system.auth_probe import router as auth_probe_router
 from app.api.system.health import router as health_router
 from core.composition import AppContainer, build_application_container
 from core.logging import get_logger, request_id_ctx
@@ -32,6 +33,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
 def create_app() -> FastAPI:
     app = FastAPI(title="AI Knowledge Platform", lifespan=lifespan)
+    app.state.container = build_application_container()
+    print("HAS RATE LIMITER:", hasattr(app.state.container, "rate_limit_service"))
 
     @app.middleware("http")
     async def request_id_middleware(request: Request, call_next):  # type: ignore[no-untyped-def]
@@ -43,6 +46,7 @@ def create_app() -> FastAPI:
 
     register_exception_handlers(app)
     app.include_router(health_router, prefix="/api/system")
+    app.include_router(auth_probe_router, prefix="/api/system")
 
     return app
 
