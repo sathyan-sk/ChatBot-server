@@ -1,0 +1,26 @@
+# Local dev: DB is Supabase (remote) via DATABASE_URL in .env — no local Postgres service.
+# Only the two application processes run locally: api (stateless FastAPI) and worker (ingestion + cleanup).
+
+services:
+  api:
+    build:
+      context: .
+      target: api
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  worker:
+    build:
+      context: .
+      target: worker
+    env_file:
+      - .env
+    volumes:
+      - .:/app
+    restart: unless-stopped
