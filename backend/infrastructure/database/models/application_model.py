@@ -1,0 +1,12 @@
+from sqlalchemy import Boolean, String
+from sqlalchemy.orm import Mapped, mapped_column
+
+from infrastructure.database.models.base import Base, TimestampMixin, UUIDPrimaryKeyMixin
+
+
+class ApplicationModel(Base, UUIDPrimaryKeyMixin, TimestampMixin):
+    __tablename__ = "applications"
+
+    name: Mapped[str] = mapped_column(String(255), nullable=False)
+    slug: Mapped[str] = mapped_column(String(100), nullable=False, unique=True, index=True)
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)

@@ -82,4 +82,4 @@ def get_settings() -> Settings:
     """Load settings once per process. Raises pydantic.ValidationError with a
     clear field-level message if any required value is missing — this is the
     fail-fast mechanism referenced throughout the architecture spec."""
-    return Settings()
+    return Settings()  # pyright: ignore[reportCallIssue]
