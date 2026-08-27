@@ -1,5 +1,4 @@
 # AI Knowledge Platform - Backend
-
 Application-scoped, multi-tenant RAG backend. FastAPI (stateless API) + separate worker
 process (ingestion + conversation cleanup). PostgreSQL + pgvector via Supabase.
 
@@ -17,7 +16,24 @@ process (ingestion + conversation cleanup). PostgreSQL + pgvector via Supabase.
     Copy-Item .env.example .env
     alembic upgrade head
     uvicorn app.main:app --reload
+--------------------
+# hint(
+Traditional project
+───────────────────
+.venv
+  └── pip
+       └── requirements.txt
 
+
+This- project
+────────────
+.venv
+  └── managed by uv
+       ├── pyproject.toml
+       └── uv.lock
+)
+
+-----------------------------
 Run the worker in a separate terminal:
 
     python -m worker.main
@@ -25,11 +41,230 @@ Run the worker in a separate terminal:
 ## Run with Docker Compose (api + worker only, DB remains remote Supabase)
 
     docker compose up --build
+---------------------------------------------------------
 
-## Enable pgvector on Supabase
-Run once in the Supabase SQL editor:
+## dev environment----
+1. Initial setup
+uv venv --python 3.12
 
-    create extension if not exists vector;
+2. Activate:
+
+.\.venv\Scripts\Activate.ps1
+
+3. Install/synchronize project dependencies:
+
+uv sync
+
+4. Development dependencies:
+
+uv sync --extra dev
+
+5. Run the application:
+
+python -m uvicorn app.main:app --reload
+
+Or through uv:
+
+uv run uvicorn app.main:app --reload
+
+# Boot the App for Run:
+1. Run the application:
+
+uv run uvicorn app.main:app
+
+2. Or, if your .venv is activated:
+
+python -m uvicorn app.main:app
+
+3. uv run uvicorn app.main:app --reload
+--------------------------------------------
+
+# For password hashing:
+python -c "import bcrypt; print(bcrypt.hashpw(b'YourStrongPasswordHere', bcrypt.gensalt()).decode())"
+
+# Generate API_KEY_HASH_SALT:
+python -c "import secrets; print(secrets.token_urlsafe(32))"
+
+# Generate JWT_SECRET:
+python -c "import secrets; print(secrets.token_urlsafe(64))"
+
+
+---------
+# Steps to be setuped this projetc created
+Step 1 —
+Open a new PowerShell terminal in VS Code.
+
+Check Python:
+
+python --version
+
+Expected:
+
+Python 3.12.x
+
+Check uv:
+
+uv --version
+
+Expected something like:
+
+uv 0.12.6
+If uv is not recognized
+
+Since you previously had this Windows PATH issue, first run:
+
+$env:Path += ";$env:USERPROFILE\.local\bin"
+
+Then:
+
+uv --version
+
+If it still fails, verify the executable:
+
+Test-Path "$env:USERPROFILE\.local\bin\uv.exe"
+
+If this returns:
+
+True
+
+run:
+
+& "$env:USERPROFILE\.local\bin\uv.exe" --version
+
+Then permanently add it to the user PATH if necessary:
+
+[Environment]::SetEnvironmentVariable(
+    "Path",
+    [Environment]::GetEnvironmentVariable("Path", "User") + ";$env:USERPROFILE\.local\bin",
+    "User"
+)
+
+Close and reopen VS Code/PowerShell afterward.
+
+Do not continue until:
+
+uv --version
+
+works normally.
+
+Step 2 — Open the backend root
+
+Your terminal should be inside:
+
+D:\new_AI-Projects\chatbot\backend
+
+Verify:
+
+Get-Location
+
+You should also see:
+
+pyproject.toml
+
+Check:
+
+Test-Path .\pyproject.toml
+
+Expected:
+
+True
+
+step 3
+Verify pyproject.toml
+
+Your dependency source of truth is:
+
+backend/
+└── pyproject.toml
+
+Step 4 — Remove a broken virtual environment if necessary
+
+If .venv already exists and you've experienced environment/path problems, cleanly recreate it.
+
+First deactivate if currently activated:
+
+deactivate
+
+Then:
+
+Remove-Item -Recurse -Force .venv -ErrorAction SilentlyContinue
+
+This is safe because .venv contains generated environment files, not your application source.
+
+
+Step 5 — Create the Python virtual environment
+
+Use the project's required Python version:
+
+uv venv --python 3.12
+
+Expected:
+
+Using CPython 3.12.x interpreter
+Creating virtual environment at: .venv
+Step 6 — Activate the environment
+.\.venv\Scripts\Activate.ps1
+
+Your prompt should become something similar to:
+
+(backend) PS D:\new_AI-Projects\chatbot\backend>
+
+Verify:
+
+python --version
+
+and:
+
+python -c "import sys; print(sys.executable)"
+Step 7 — Synchronize dependencies
+
+Now run:
+
+uv sync
+
+If your pyproject.toml contains a development dependency group/extra configured as dev, use the project's configured form, for example:
+
+uv sync --extra dev
+
+The exact command depends on how the pyproject.toml was defined.
+
+The result should create/update:
+
+backend/
+├── .venv/
+├── pyproject.toml
+└── uv.lock
+What happens here?
+
+uv:
+
+reads pyproject.toml
+       ↓
+resolves dependencies
+       ↓
+creates/updates uv.lock
+       ↓
+installs dependencies into .venv
+
+You should commit uv.lock to Git.
+
+step 8:
+Configure environment variables
+
+Create:
+
+.env
+
+from:
+
+.env.example
+
+For example:
+
+Copy-Item .env.example .env
+
+Then configure your actual development values.
+------
 
 ## Project Structure
 finalized application structure:
