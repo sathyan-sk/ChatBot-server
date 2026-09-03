@@ -1,22 +1,50 @@
+# --- Python ---
 __pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+build/
+dist/
+*.egg
 *.pyc
 *.pyo
 *.pyd
+
+# --- Virtual environments ---
 .venv/
 venv/
+env/
+ENV/
+
+# --- env / secrets ---
 .env
-*.egg-info/
-.mypy_cache/
-.ruff_cache/
+.env.*
+!.env.example
+
+# --- Testing / coverage ---
 .pytest_cache/
-.mypy_cache/
 .coverage
 htmlcov/
-dist/
-build/
+.mypy_cache/
+.ruff_cache/
+
+# --- Editors / OS ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# --- Logs / local data ---
+logs/
 .vscode/*.log
 *.log
+
+# --- Alembic ---
+migrations/versions/*.pyc
 alembic/versions/__pycache__/
 alembic/
+
+# --- Docker ---
+*.pid
 
 z-proj-notes
